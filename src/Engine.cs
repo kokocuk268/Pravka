@@ -20,20 +20,33 @@ namespace Pravka {
   }
 
   readonly Dictionary<string,long> words = new Dictionary<string,long>(StringComparer.Ordinal);
+  readonly HashSet<string> recognized = new HashSet<string>(StringComparer.Ordinal);
   readonly Dictionary<int,List<WordEntry>> buckets = new Dictionary<int,List<WordEntry>>();
   readonly Dictionary<string,string> known = new Dictionary<string,string>(StringComparer.Ordinal);
   readonly HashSet<string> ignored = new HashSet<string>(StringComparer.Ordinal);
   readonly string exceptionsPath;
-  public int Count { get { return words.Count; } }
+  public int Count { get { return recognized.Count; } }
 
   public Engine(string root) {
    exceptionsPath = Path.Combine(root, "exceptions.txt");
    foreach (string language in new[] { "ru", "en" }) {
     foreach (string line in File.ReadLines(Path.Combine(root, "data", language + "_50k.txt"), Encoding.UTF8)) {
      string[] parts = line.Split(' '); long frequency;
-     if (parts.Length == 2 && parts[0].All(Char.IsLetter) && Int64.TryParse(parts[1], out frequency))
-      words[parts[0]] = frequency;
+     if (parts.Length == 2 && parts[0].All(Char.IsLetter) && Int64.TryParse(parts[1], out frequency)) {
+      words[parts[0]] = frequency; recognized.Add(parts[0]);
+     }
     }
+   }
+   string recognitionPath = Path.Combine(root, "data", "ru_recognition_150k.txt");
+   if (File.Exists(recognitionPath)) foreach (string line in File.ReadLines(recognitionPath, Encoding.UTF8)) {
+    int separator = line.IndexOf(' ');
+    string value = separator < 0 ? line : line.Substring(0, separator);
+    if (value.Length > 0 && value.All(Char.IsLetter)) recognized.Add(value);
+   }
+   string protectedPath = Path.Combine(root, "data", "protected_words.txt");
+   if (File.Exists(protectedPath)) foreach (string line in File.ReadLines(protectedPath, Encoding.UTF8)) {
+    string value = line.Trim().ToLowerInvariant();
+    if (value.Length > 0 && value[0] != '#' && value.All(Char.IsLetter)) recognized.Add(value);
    }
    foreach (KeyValuePair<string,long> item in words) {
     List<WordEntry> bucket;
@@ -47,33 +60,13 @@ namespace Pravka {
     }
    }
 
-   const string pairs =
-    "дила=дела|првиет=привет|привте=привет|превет=привет|приветт=привет|спсибо=спасибо|" +
-    "спаисбо=спасибо|спасбио=спасибо|спасиббо=спасибо|пожалуста=пожалуйста|" +
-    "пожалуйтса=пожалуйста|пожлауйста=пожалуйста|извени=извини|извените=извините|" +
-    "извните=извините|здраствуйте=здравствуйте|здравстуйте=здравствуйте|" +
-    "здравтсвуйте=здравствуйте|севодня=сегодня|сегодян=сегодня|сегондя=сегодня|" +
-    "сечас=сейчас|сейчса=сейчас|сейчасс=сейчас|завтро=завтра|заврта=завтра|" +
-    "вчреа=вчера|есчо=ещё|ещол=ещё|хоршо=хорошо|хорого=хорошо|хоршоо=хорошо|" +
-    "канечно=конечно|конешно=конечно|потомучто=потому что|патаму=потому|" +
-    "потмоу=потому|пачему=почему|почмеу=почему|ничгео=ничего|ничево=ничего|" +
-    "ничго=ничего|незнаю=не знаю|вообщем=в общем|будующем=будущем|" +
-    "будующий=будущий|прилжоение=приложение|приложениие=приложение|" +
-    "программмa=программа|компютер=компьютер|клавитура=клавиатура|" +
-    "клавиатруа=клавиатура|рабоатет=работает|рабоать=работать|делатть=делать|" +
-    "ошбика=ошибка|ошибкка=ошибка|настройик=настройки|настроики=настройки|" +
-    "teh=the|hte=the|thsi=this|tihs=this|taht=that|thta=that|wiht=with|" +
-    "wih=with|adn=and|nad=and|dont=don't|doesnt=doesn't|didnt=didn't|" +
-    "cant=can't|isnt=isn't|wasnt=wasn't|wont=won't|recieve=receive|" +
-    "recieved=received|definately=definitely|seperate=separate|occured=occurred|" +
-    "becuase=because|beacuse=because|becasue=because|tomorow=tomorrow|" +
-    "tommorow=tomorrow|tommorrow=tomorrow|helo=hello|helllo=hello|pleae=please|" +
-    "plase=please|plese=please|thnaks=thanks|thankyou=thank you|alot=a lot|" +
-    "freind=friend|frend=friend|wierd=weird|adress=address|langauge=language|" +
-    "keybaord=keyboard";
-   foreach (string pair in pairs.Split('|')) {
-    int equals = pair.IndexOf('=');
-    known[pair.Substring(0, equals)] = pair.Substring(equals + 1);
+   string correctionsPath = Path.Combine(root, "data", "corrections.txt");
+   if (File.Exists(correctionsPath)) foreach (string line in File.ReadLines(correctionsPath, Encoding.UTF8)) {
+    string value = line.Trim();
+    if (value.Length == 0 || value[0] == '#') continue;
+    int equals = value.IndexOf('=');
+    if (equals > 0 && equals < value.Length - 1)
+     known[value.Substring(0, equals).ToLowerInvariant()] = value.Substring(equals + 1);
    }
   }
 
@@ -114,6 +107,7 @@ namespace Pravka {
   }
 
   long Frequency(string value) { long result; return words.TryGetValue(value, out result) ? result : 0; }
+  bool Recognized(string value) { return recognized.Contains(value); }
 
   static bool Neighbours(char a, char b) {
    string[] rows = Cyrillic(a)
@@ -193,28 +187,42 @@ namespace Pravka {
    if (spelling && input.Length > 2 && Char.IsUpper(input[0]) && Char.IsUpper(input[1])
     && input.Skip(2).All(Char.IsLower)) {
     string fixedCaps = Char.ToUpperInvariant(word[0]) + word.Substring(1);
-    if (Frequency(word) > 0) return new Decision(fixedCaps, "caps", null);
+    if (Recognized(word)) return new Decision(fixedCaps, "caps", null);
    }
    if (input.Skip(1).Any(Char.IsUpper) && !input.All(Char.IsUpper)) return unchanged;
 
    string replacement;
    if (spelling && known.TryGetValue(word, out replacement))
     return new Decision(MatchCase(input, replacement), "typo", null);
-   if (Frequency(word) > 0) return unchanged;
+   if (Recognized(word)) return unchanged;
 
    string flipped = Flip(word);
    long flippedFrequency = flipped == word ? 0 : Frequency(flipped);
    if (layout && flippedFrequency >= (word.Length <= 3 ? 5000 : 300))
     return new Decision(MatchCase(input, flipped), "layout", null);
 
-   if (!spelling || word.Length < 4 || input.All(Char.IsUpper)) return unchanged;
+   // Short words are highly ambiguous without sentence context. They are only
+   // corrected through the reviewed correction table; fuzzy matching starts at 6.
+   if (!spelling || word.Length < 6 || input.All(Char.IsUpper)) return unchanged;
    Candidate[] candidates = Nearby(word, word.Length >= 5 ? 2 : 1);
    if (candidates.Length == 0) return unchanged;
    Candidate first = candidates[0];
    double second = candidates.Length > 1 ? candidates[1].Score : 0;
-   bool confident = first.Distance == 1
-    ? first.Score >= 1400 && (second == 0 || first.Score >= second * 2.8)
-    : first.Score >= 3500 && (second == 0 || first.Score >= second * 5.0);
+   bool keepsNegation = !(word.StartsWith("не") || word.StartsWith("ни"))
+    || first.Text.StartsWith(word.Substring(0, 2));
+   // Automatic changes need a recognizable physical typing pattern: a nearby
+   // key, a transposition, a doubled letter, or one omitted letter. Other close
+   // dictionary matches stay suggestions because they are often valid names or
+   // a different inflection that cannot be resolved without sentence context.
+   // Missing-letter guesses are substantially more ambiguous in English
+   // (for example, one input can be one deletion away from several tenses).
+   // Keep them automatic only for Russian and leave English ambiguity as a hint.
+   bool omittedLetter = Cyrillic(word[0]) && first.Distance == 1 && first.Text.Length == word.Length + 1;
+   bool clearTypingPattern = TypingBoost(word, first.Text) > 1.0 || omittedLetter;
+   double requiredLead = omittedLetter ? 20.0 : 2.8;
+   bool confident = keepsNegation && clearTypingPattern && (first.Distance == 1
+    ? first.Score >= 1400 && (second == 0 || first.Score >= second * requiredLead)
+    : first.Score >= 3500 && (second == 0 || first.Score >= second * 5.0));
    if (confident) return new Decision(MatchCase(input, first.Text), "typo", null);
    return new Decision(input, "none", MatchCase(input, first.Text));
   }

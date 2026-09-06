@@ -16,14 +16,22 @@ namespace Pravka {
   [StructLayout(LayoutKind.Sequential)] struct Input { public uint type; public Union u; }
 
   public const uint Mark = 0x5052564B;
+  // The integration harness uses this handle to exercise the UI Automation +
+  // SendInput fallback even though its local TextBox also supports RichEdit APIs.
+  internal static IntPtr GenericForTest;
   const uint KeyUp = 2, Unicode = 4;
 
   [DllImport("user32.dll", SetLastError=true)] public static extern IntPtr SetWindowsHookEx(int id, Hook proc, IntPtr module, uint tid);
   [DllImport("user32.dll")] public static extern bool UnhookWindowsHookEx(IntPtr h);
   [DllImport("user32.dll")] public static extern IntPtr CallNextHookEx(IntPtr h, int n, IntPtr w, IntPtr l);
   [DllImport("kernel32.dll", CharSet=CharSet.Unicode)] public static extern IntPtr GetModuleHandle(string name);
+  [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
   [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
   [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hwnd);
+  [DllImport("user32.dll")] static extern bool BringWindowToTop(IntPtr hwnd);
+  [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr hwnd, int command);
+  [DllImport("user32.dll")] static extern IntPtr SetFocus(IntPtr hwnd);
+  [DllImport("user32.dll")] static extern bool AttachThreadInput(uint first, uint second, bool attach);
   [DllImport("user32.dll", SetLastError=true)] static extern bool PostMessage(IntPtr hwnd, uint message, IntPtr wParam, IntPtr lParam);
   [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
   [DllImport("user32.dll")] public static extern bool GetGUIThreadInfo(uint tid, ref Gui info);
@@ -44,6 +52,20 @@ namespace Pravka {
    uint pid; uint tid = GetWindowThreadProcessId(hwnd, out pid);
    var g = new Gui { size = (uint)Marshal.SizeOf(typeof(Gui)) };
    return GetGUIThreadInfo(tid, ref g) ? g.focus : IntPtr.Zero;
+  }
+
+  // Used only by the interactive integration harness. Attaching input queues
+  // lets the test take focus deterministically even when it was launched by a
+  // background shell that Windows does not consider the foreground process.
+  public static bool FocusForTest(IntPtr window, IntPtr control) {
+   uint ignored; uint current = GetCurrentThreadId();
+   uint foreground = GetWindowThreadProcessId(GetForegroundWindow(), out ignored);
+   bool attached = foreground != 0 && foreground != current && AttachThreadInput(current, foreground, true);
+   try {
+    ShowWindow(window, 5); BringWindowToTop(window); SetForegroundWindow(window); SetFocus(control);
+   }
+   finally { if (attached) AttachThreadInput(current, foreground, false); }
+   return GetForegroundWindow() == window && Focus(window) == control;
   }
 
   public static bool Down(int key) { return (GetAsyncKeyState(key) & 0x8000) != 0; }
@@ -100,6 +122,7 @@ namespace Pravka {
   }
 
   public static bool IsRichEdit(IntPtr focus) {
+   if (focus == GenericForTest) return false;
    var name = new StringBuilder(256); GetClassName(focus, name, name.Capacity);
    string value = name.ToString().ToLowerInvariant();
    return value.Contains("richedit") || value == "edit" || value.StartsWith("windowsforms10.edit");

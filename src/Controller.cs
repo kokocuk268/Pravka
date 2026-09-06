@@ -158,6 +158,10 @@ namespace Pravka {
      return Native.CallNextHookEx(keyHook, n, message, data);
     }
     if (Native.Modifiers()) {
+     // A shortcut such as Ctrl+A starts a different edit operation. Keeping the
+     // previous replacement here made the following Backspace undo an old word
+     // and permanently add it to exceptions instead of deleting the selection.
+     undo = null;
      // Alt+Shift/Ctrl+Shift contain only modifier keys. Win+Space is also a
      // layout gesture and must not cause the next word to be skipped.
      if (key.vk == 0x20 && (Native.Down(0x5B) || Native.Down(0x5C))) Reset();

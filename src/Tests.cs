@@ -27,9 +27,16 @@ namespace Pravka {
     "ghbdtn|привет", "xnj|что", "ltkftim|делаешь", "руддщ|hello", "привет|привет", "работает|работает", "мир|мир",
     "hello|hello", "test|test", "wrold|world", "progarm|program", "мошина|машина",
     "каробка|коробка", "пирветт|привет", "becasee|because", "ПРивет|Привет", "HEllo|Hello",
+    "малако|молоко", "сабака|собака", "машына|машина", "харошо|хорошо",
+    "работта|работа", "теккс|текст", "интерфес|интерфейс", "пользоваватель|пользователь",
+    "приложние|приложение", "испровить|исправить", "расскладка|раскладка", "пичатаю|печатаю",
+    "непонял|не понял", "НЕПОНЯЛ|НЕ ПОНЯЛ", "ситсема|система", "системаа|система",
+    "систнма|система", "компьютре|компьютер", "порграмма|программа", "современынй|современный",
     "корова|корова", "длина|длина", "artist|artist", "userName|userName", "abc123|abc123",
     "hello@example.com|hello@example.com", "C:\\Users|C:\\Users", "12345|12345",
-    "прivет|прivет", "тест_код|тест_код", "API|API", "кот|кот"
+    "прivет|прivет", "тест_код|тест_код", "API|API", "кот|кот",
+    "кирпичный|кирпичный", "перемалывает|перемалывает", "неопасен|неопасен",
+    "автокоррекция|автокоррекция", "гитхаб|гитхаб", "нейросеть|нейросеть"
    };
    foreach (string item in cases) {
     string[] pair = item.Split('|');
@@ -44,8 +51,13 @@ namespace Pravka {
    check("првиет", "првиет", false, false);
    check("ghbdtn", "ghbdtn", true, false);
    check("becuase", "becuase", false, false);
+   check("малако", "малако", false, true);
    engine.IgnoreForSession("првиет");
    check("првиет", "првиет", true, true);
+   Decision cautious = engine.Check("компютре", true, true);
+   state("ambiguous omission stays a suggestion", cautious.Text == "компютре" && cautious.Suggestion == "компьютер",
+    cautious.Text + " / " + cautious.Suggestion);
+   state("recognition vocabulary is expanded", engine.Count >= 190000, "entries=" + engine.Count);
 
    IntPtr window = new IntPtr(101), focus = new IntPtr(202);
    var buffer = new WordBuffer();

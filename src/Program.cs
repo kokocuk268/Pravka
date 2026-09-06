@@ -12,6 +12,8 @@ namespace Pravka {
    string root = AppDomain.CurrentDomain.BaseDirectory;
    if (args.Length > 0 && args[0] == "--self-test")
     return Tests.Run(root, args.Length > 1 ? args[1] : Path.Combine(root, "tests.txt"));
+   if (args.Length > 0 && args[0] == "--quality-test")
+    return QualityTests.Run(root, args.Length > 1 ? args[1] : Path.Combine(root, "quality-tests.txt"));
    if (args.Length > 0 && args[0] == "--integration-test") {
     Application.EnableVisualStyles();
     Application.SetCompatibleTextRenderingDefault(false);
@@ -25,8 +27,9 @@ namespace Pravka {
      using (var form = new MainForm(root, false, true)) {
      form.ShowInTaskbar = false; form.StartPosition = FormStartPosition.Manual;
      form.Location = new Point(-3000, -3000); form.Opacity = 0.02;
-     form.Show(); Application.DoEvents();
-     if (args.Length > 2) { form.ShowPreviewPage(args[2]); Application.DoEvents(); }
+     form.Show(); form.Refresh(); Application.DoEvents();
+     if (args.Length > 2) form.ShowPreviewPage(args[2]);
+     form.Refresh(); Application.DoEvents(); Thread.Sleep(100); Application.DoEvents();
       using (var bitmap = new Bitmap(form.Width, form.Height)) {
        form.DrawToBitmap(bitmap, new Rectangle(Point.Empty, form.Size));
        bitmap.Save(output, ImageFormat.Png);
@@ -39,7 +42,7 @@ namespace Pravka {
    }
 
    bool fresh;
-   using (var mutex = new Mutex(true, "Local\\Pravka-0.4", out fresh)) {
+   using (var mutex = new Mutex(true, "Local\\Pravka", out fresh)) {
     if (!fresh) {
      MessageBox.Show("Правка уже работает — ищи её значок рядом с часами.", "Правка");
      return 0;

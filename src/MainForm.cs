@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace Pravka {
  sealed class MainForm : Form {
-  const string Version = "0.4.0";
+  const string Version = "0.4.1";
   readonly string config;
   readonly float scale;
   readonly Toggle master, spelling, layout;
@@ -41,7 +41,7 @@ namespace Pravka {
    ForeColor = Palette.Text;
    BackColor = Palette.Window;
    FormBorderStyle = FormBorderStyle.FixedSingle;
-   ClientSize = Z(528, 480);
+   ClientSize = Z(580, 480);
    StartPosition = FormStartPosition.CenterScreen;
    MaximizeBox = false;
    MinimumSize = Size;
@@ -50,7 +50,7 @@ namespace Pravka {
    config = Path.Combine(root, "settings.txt");
 
    var sidebar = new Panel { Location = P(0, 0), Size = Z(100, 480), BackColor = Palette.Sidebar };
-   var main = new SoftPanel { Location = P(100, 0), Size = Z(428, 480) };
+   var main = new SoftPanel { Location = P(100, 0), Size = Z(480, 480) };
    Controls.Add(sidebar); Controls.Add(main);
 
    var sideLogo = new LogoControl { Location = P(29, 17), Size = Z(42, 42) };
@@ -65,79 +65,79 @@ namespace Pravka {
    sidebar.Controls.Add(TextLabel("♥", 11F, Color.FromArgb(120, 135, 173), FontStyle.Regular, 17, 423, 18, 20));
    sidebar.Controls.Add(TextLabel("Текст\nлучше", 7.3F, Palette.Muted, FontStyle.Regular, 36, 421, 56, 34));
 
-   var hero = new Panel { Location = P(0, 0), Size = Z(428, 88), BackColor = Color.Transparent };
+   var hero = new Panel { Location = P(0, 0), Size = Z(480, 88), BackColor = Color.Transparent };
    hero.Controls.Add(new LogoControl { Location = P(14, 16), Size = Z(52, 52) });
    hero.Controls.Add(new Badge { Text = "ПРАВКА " + Version, Location = P(78, 10), Size = Z(92, 18) });
-   hero.Controls.Add(TextLabel("Автокоррекция на лету", 19F, Palette.Text, FontStyle.Bold, 78, 28, 310, 32));
-   hero.Controls.Add(TextLabel("Русский + English  ·  без сочетаний клавиш", 8.5F, Palette.Muted, FontStyle.Regular, 79, 61, 306, 20));
-   hero.Controls.Add(TextLabel("пиши легко  ♡", 7.5F, Color.FromArgb(111, 92, 226), FontStyle.Italic, 322, 10, 88, 18));
+   hero.Controls.Add(TextLabel("Автокоррекция на лету", 19F, Palette.Text, FontStyle.Bold, 78, 28, 382, 32));
+   hero.Controls.Add(TextLabel("Русский + English  ·  без сочетаний клавиш", 8.5F, Palette.Muted, FontStyle.Regular, 79, 61, 360, 20));
+   hero.Controls.Add(TextLabel("пиши легко  ♡", 7.5F, Color.FromArgb(111, 92, 226), FontStyle.Italic, 374, 10, 88, 18));
    main.Controls.Add(hero);
 
-   var host = new Panel { Location = P(0, 88), Size = Z(428, 392), BackColor = Color.Transparent };
+   var host = new Panel { Location = P(0, 88), Size = Z(480, 392), BackColor = Color.Transparent };
    main.Controls.Add(host);
    homePage = new Panel { Dock = DockStyle.Fill, BackColor = Color.Transparent };
    settingsPage = new Panel { Dock = DockStyle.Fill, BackColor = Color.Transparent, Visible = false };
    aboutPage = new Panel { Dock = DockStyle.Fill, BackColor = Color.Transparent, Visible = false };
    host.Controls.Add(homePage); host.Controls.Add(settingsPage); host.Controls.Add(aboutPage);
 
-   var statusCard = new RoundedPanel { Location = P(14, 3), Size = Z(400, 46), Radius = U(13) };
+   var statusCard = new RoundedPanel { Location = P(14, 3), Size = Z(452, 46), Radius = U(13) };
    statusCard.Controls.Add(new Pulse { Location = P(14, 12), Size = Z(22, 22) });
-   status = TextLabel("Готова к работе", 10F, Palette.Text, FontStyle.Bold, 49, 5, 330, 20);
-   count = TextLabel("Исправления применяются автоматически", 7.7F, Palette.Muted, FontStyle.Regular, 49, 25, 330, 16);
+   status = TextLabel("Готова к работе", 10F, Palette.Text, FontStyle.Bold, 49, 5, 382, 20);
+   count = TextLabel("Исправления применяются автоматически", 7.7F, Palette.Muted, FontStyle.Regular, 49, 25, 382, 16);
    statusCard.Controls.Add(status); statusCard.Controls.Add(count); homePage.Controls.Add(statusCard);
 
    master = new Toggle("Исправлять при наборе", "После пробела и знаков препинания", true, "⌨") {
-    Location = P(14, 55), Size = Z(400, 46)
+    Location = P(14, 55), Size = Z(452, 46)
    };
    spelling = new Toggle("Умные опечатки", "RU + EN · 1–2 ошибки", true, "Aa") {
-    Location = P(14, 107), Size = Z(196, 56)
+    Location = P(14, 107), Size = Z(222, 56)
    };
    layout = new Toggle("Автораскладка", "ghbdtn → привет", true, "⚡") {
-    Location = P(218, 107), Size = Z(196, 56)
+    Location = P(244, 107), Size = Z(222, 56)
    };
    homePage.Controls.Add(master); homePage.Controls.Add(spelling); homePage.Controls.Add(layout);
 
-   var testCard = new RoundedPanel { Location = P(14, 169), Size = Z(400, 102), Radius = U(13) };
+   var testCard = new RoundedPanel { Location = P(14, 169), Size = Z(452, 102), Radius = U(13) };
    testCard.Controls.Add(TextLabel("Проверь прямо здесь", 8.5F, Palette.Text, FontStyle.Bold, 12, 7, 245, 18));
    var test = new RichTextBox {
-    Location = P(12, 29), Size = Z(376, 47), BorderStyle = BorderStyle.None, Multiline = true,
+    Location = P(12, 29), Size = Z(428, 47), BorderStyle = BorderStyle.None, Multiline = true,
     DetectUrls = false, BackColor = Color.White, ForeColor = Palette.Text,
     Font = new Font("Segoe UI", 13F), AcceptsTab = false, MaxLength = 1000
    };
-   placeholder = TextLabel("Набери текст, и Правка его исправит…", 9F, Color.FromArgb(153, 165, 195), FontStyle.Regular, 17, 35, 310, 24);
+   placeholder = TextLabel("Набери текст, и Правка его исправит…", 9F, Color.FromArgb(153, 165, 195), FontStyle.Regular, 17, 35, 360, 24);
    placeholder.Cursor = Cursors.IBeam;
    testCard.Controls.Add(test); testCard.Controls.Add(placeholder); placeholder.BringToFront();
-   testCard.Controls.Add(TextLabel("Примеры:  ghbdtn  ·  дила?  ·  wrold", 7.4F, Palette.Muted, FontStyle.Regular, 13, 80, 292, 16));
-   counter = TextLabel("0/1000", 7.4F, Palette.Muted, FontStyle.Regular, 330, 80, 55, 16);
+   testCard.Controls.Add(TextLabel("Примеры:  ghbdtn  ·  дила?  ·  wrold", 7.4F, Palette.Muted, FontStyle.Regular, 13, 80, 338, 16));
+   counter = TextLabel("0/1000", 7.4F, Palette.Muted, FontStyle.Regular, 382, 80, 55, 16);
    counter.TextAlign = ContentAlignment.TopRight; testCard.Controls.Add(counter);
    placeholder.Click += (s, e) => test.Focus();
    test.TextChanged += (s, e) => { placeholder.Visible = test.TextLength == 0; counter.Text = test.TextLength + "/1000"; };
    homePage.Controls.Add(testCard);
 
-   var tip = new RoundedPanel { Location = P(14, 277), Size = Z(400, 44), Radius = U(12), Fill = Color.FromArgb(243, 248, 255), Border = Color.FromArgb(216, 229, 252) };
+   var tip = new RoundedPanel { Location = P(14, 277), Size = Z(452, 44), Radius = U(12), Fill = Color.FromArgb(243, 248, 255), Border = Color.FromArgb(216, 229, 252) };
    tip.Controls.Add(TextLabel("💡", 11F, Palette.Accent, FontStyle.Regular, 13, 9, 27, 25));
-   tip.Controls.Add(TextLabel("Backspace после замены вернёт слово.\nПравка запомнит исключение.", 7.3F, Palette.Text, FontStyle.Regular, 44, 5, 338, 34));
+   tip.Controls.Add(TextLabel("Backspace после замены вернёт слово.\nПравка запомнит исключение.", 7.3F, Palette.Text, FontStyle.Regular, 44, 5, 390, 34));
    homePage.Controls.Add(tip);
    AddFooter(homePage);
 
    settingsPage.Controls.Add(TextLabel("Настройки", 15F, Palette.Text, FontStyle.Bold, 14, 6, 300, 28));
    settingsPage.Controls.Add(TextLabel("Изменения сохраняются автоматически", 8F, Palette.Muted, FontStyle.Regular, 15, 35, 330, 19));
-   settingsMaster = new Toggle("Исправлять при наборе", "Главный переключатель", true, "⌨") { Location = P(14, 62), Size = Z(400, 54) };
-   settingsSpelling = new Toggle("Умные опечатки", "Русский и английский", true, "Aa") { Location = P(14, 123), Size = Z(400, 54) };
-   settingsLayout = new Toggle("Автораскладка", "Исправляет слово и переключает RU/EN", true, "⚡") { Location = P(14, 184), Size = Z(400, 54) };
+   settingsMaster = new Toggle("Исправлять при наборе", "Главный переключатель", true, "⌨") { Location = P(14, 62), Size = Z(452, 54) };
+   settingsSpelling = new Toggle("Умные опечатки", "Русский и английский", true, "Aa") { Location = P(14, 123), Size = Z(452, 54) };
+   settingsLayout = new Toggle("Автораскладка", "Исправляет слово и переключает RU/EN", true, "⚡") { Location = P(14, 184), Size = Z(452, 54) };
    settingsPage.Controls.Add(settingsMaster); settingsPage.Controls.Add(settingsSpelling); settingsPage.Controls.Add(settingsLayout);
-   var startup = new RoundedPanel { Location = P(14, 246), Size = Z(400, 65), Radius = U(13) };
+   var startup = new RoundedPanel { Location = P(14, 246), Size = Z(452, 65), Radius = U(13) };
    startup.Controls.Add(TextLabel("Запуск вместе с Windows", 9F, Palette.Text, FontStyle.Bold, 15, 9, 260, 20));
    startup.Controls.Add(TextLabel("Используется ярлык Pravka.exe --background", 7.7F, Palette.Muted, FontStyle.Regular, 15, 32, 350, 19));
    settingsPage.Controls.Add(startup); AddFooter(settingsPage);
 
    aboutPage.Controls.Add(TextLabel("О программе", 15F, Palette.Text, FontStyle.Bold, 14, 6, 300, 28));
-   var aboutCard = new RoundedPanel { Location = P(14, 48), Size = Z(400, 220), Radius = U(15) };
+   var aboutCard = new RoundedPanel { Location = P(14, 48), Size = Z(452, 220), Radius = U(15) };
    aboutCard.Controls.Add(new LogoControl { Location = P(18, 18), Size = Z(58, 58) });
    aboutCard.Controls.Add(TextLabel("Правка " + Version, 14F, Palette.Text, FontStyle.Bold, 90, 17, 250, 28));
-   aboutCard.Controls.Add(TextLabel("Бесплатный локальный автокорректор для Windows", 8F, Palette.Muted, FontStyle.Regular, 91, 48, 270, 30));
-   aboutCard.Controls.Add(TextLabel("✓  исправляет опечатки RU + EN\n✓  меняет неверную раскладку автоматически\n✓  не отправляет набранный текст в интернет\n✓  исходный код открыт по лицензии MIT", 8.5F, Palette.Text, FontStyle.Regular, 19, 92, 355, 94));
-   aboutCard.Controls.Add(TextLabel("95 595 слов  ·  без аккаунта  ·  без телеметрии", 7.7F, Palette.Muted, FontStyle.Regular, 19, 191, 355, 20));
+   aboutCard.Controls.Add(TextLabel("Бесплатный локальный автокорректор для Windows", 8F, Palette.Muted, FontStyle.Regular, 91, 48, 322, 30));
+   aboutCard.Controls.Add(TextLabel("✓  исправляет опечатки RU + EN\n✓  меняет неверную раскладку автоматически\n✓  не отправляет набранный текст в интернет\n✓  исходный код открыт по лицензии MIT", 8.5F, Palette.Text, FontStyle.Regular, 19, 92, 407, 94));
+   aboutCard.Controls.Add(TextLabel("190 000+ слов  ·  без аккаунта  ·  без телеметрии", 7.7F, Palette.Muted, FontStyle.Regular, 19, 191, 407, 20));
    aboutPage.Controls.Add(aboutCard); AddFooter(aboutPage);
 
    homeNav.Click += (s, e) => ShowPage(homePage, homeNav);
@@ -179,9 +179,9 @@ namespace Pravka {
 
   void AddFooter(Panel page) {
    page.Controls.Add(TextLabel("☾  Автопауза: IDE · терминалы · пароли", 7.6F, Palette.Muted, FontStyle.Regular, 15, 329, 210, 22));
-   var hide = new ActionButton("—  В трей", false) { Location = P(222, 347), Size = Z(92, 36) };
+   var hide = new ActionButton("—  В трей", false) { Location = P(274, 347), Size = Z(92, 36) };
    hide.Click += (s, e) => Hide(); page.Controls.Add(hide);
-   var exit = new ActionButton("⏻  Выключить", true) { Location = P(320, 347), Size = Z(94, 36) };
+   var exit = new ActionButton("⏻  Выключить", true) { Location = P(372, 347), Size = Z(94, 36) };
    exit.Click += (s, e) => Quit(); page.Controls.Add(exit);
   }
 
