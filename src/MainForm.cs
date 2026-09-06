@@ -148,8 +148,10 @@ namespace Pravka {
    WirePair(master, settingsMaster); WirePair(spelling, settingsSpelling); WirePair(layout, settingsLayout);
 
    if (preview) {
-    status.Text = "Готова к работе";
-    count.Text = "Исправления применяются автоматически";
+    status.Text = "Исправлено автоматически";
+    count.Text = "xnj ltkftim  →  что делаешь";
+    test.Text = "что делаешь";
+    test.SelectionStart = test.TextLength;
     return;
    }
 
