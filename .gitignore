@@ -1,0 +1,17 @@
+# Generated binaries and packages
+*.exe
+*.pdb
+*.zip
+.build/
+dist/
+
+# Local application state and test output
+settings.txt
+exceptions.txt
+tests.txt
+
+# Editor files
+.vs/
+.idea/
+*.user
+*.suo
